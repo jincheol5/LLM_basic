@@ -95,7 +95,6 @@ training_args=TrainingArguments(
     gradient_accumulation_steps=16, # effective batch = 32
     num_train_epochs=3,
     learning_rate=2e-4, # LoRA 표준 LR
-    device_map=None,
     fp16=False, # Qwen + GPU 기준, QLoRA에서는 Trainer fp16 끔
     logging_steps=50,
     save_strategy="no", # 중간 checkpoint 저장 안 함

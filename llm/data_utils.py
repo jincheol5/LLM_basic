@@ -92,7 +92,6 @@ class DataUtils:
         model=AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=dir_path,
             dtype=torch.float16,
-            device_map="cuda",
             local_files_only=True # local에서만
         )
 
