@@ -1,6 +1,8 @@
 import os
+import torch
 from datasets import load_dataset,load_from_disk
 from transformers import AutoModelForCausalLM,AutoTokenizer
+from peft import PeftModel
 
 class DataUtils:
     basic_path=os.path.join('..','data','llm_basic')
@@ -44,13 +46,13 @@ class DataUtils:
             model_name
         """
         ### set dir path
-        dir_path=os.path.join(DataUtils.basic_path,"pretrained_llm",model_name)
+        dir_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
         os.makedirs(dir_path,exist_ok=True) # 해당 경로의 모든 폴더 없으면 생성
 
         ### load model from Hugging Face
         model=AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=HF_path,
-            torch_dtype="auto",
+            dtype="auto",
             device_map="cpu", 
             low_cpu_mem_usage=True, # 메모리 사용 최소화
             trust_remote_code=True # Qwen2 커스텀 코드 실행 허용
@@ -77,12 +79,12 @@ class DataUtils:
             tokenizer
         """
         ### set dir path
-        dir_path=os.path.join(DataUtils.basic_path,"pretrained_llm",model_name)
+        dir_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
 
         ### load model from local dir
         model=AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=dir_path,
-            torch_dtype="auto",
+            dtype=torch.float16,
             device_map="cuda",
             local_files_only=True # local에서만
         )
@@ -90,6 +92,43 @@ class DataUtils:
         ### load tokenizer from local dir 
         tokenizer=AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=dir_path,
+            use_fast=True,
             local_files_only=True
         )
         return model,tokenizer
+
+    @staticmethod
+    def save_adapter(model,tokenizer,adapter_name:str):
+        """
+        Input:
+            model (peft_model)
+            tokenizer
+            adapter_name
+        """
+        ### set dir path
+        dir_path=os.path.join(DataUtils.basic_path,"adapter",adapter_name)
+        os.makedirs(dir_path,exist_ok=True) # 해당 경로의 모든 폴더 없으면 생성
+
+        ### save adapter and tokenizer
+        model.save_pretrained(dir_path)
+        tokenizer.save_pretrained(dir_path)
+        print(f"Save fine_tuning adapter and tokenizer of {adapter_name}")
+
+    @staticmethod
+    def load_adapter(base_model,adapter_name:str):
+        """
+        Input:
+            base_model
+            adapter_name
+        Output:
+            merged_model
+        """
+        ### set dir path
+        dir_path=os.path.join(DataUtils.basic_path,"adapter",adapter_name)
+
+        ### load adapter and merge with base model
+        merged_model=PeftModel.from_pretrained(
+            base_model,
+            dir_path
+        )
+        return merged_model
