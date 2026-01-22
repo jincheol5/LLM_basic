@@ -1,7 +1,7 @@
 import os
 import torch
 from datasets import load_dataset,load_from_disk
-from transformers import AutoModelForCausalLM,AutoTokenizer
+from transformers import AutoModelForCausalLM,AutoTokenizer,BitsAndBytesConfig
 from peft import PeftModel
 
 class DataUtils:
@@ -49,9 +49,16 @@ class DataUtils:
         dir_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
         os.makedirs(dir_path,exist_ok=True) # 해당 경로의 모든 폴더 없으면 생성
 
-        ### load model from Hugging Face
+        ### load quantized base model from Hugging Face
+        bnb_config=BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+        )
         model=AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=HF_path,
+            quantization_config=bnb_config, # for QLoRA=LoRA+quantized base model”
             dtype="auto",
             device_map="cpu", 
             low_cpu_mem_usage=True, # 메모리 사용 최소화

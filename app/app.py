@@ -64,7 +64,7 @@ def tokenize_fn(example):
     return tokenizer(
         example["text"], # Alpaca prompt 전체 문자열, Instruction + Input + Response가 모두 포함됨
         truncation=True, # 최대 길이를 초과하면 뒤를 잘라라
-        max_length=1024, # 토큰 최대 길이 제한
+        max_length=512, # 토큰 최대 길이 제한
         padding=False, # 여기서 padding no, padding은 batch 단위에서 하는 게 더 효율적 (DataCollator가 담당) 
     )
 
