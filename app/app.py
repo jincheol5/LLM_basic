@@ -109,4 +109,4 @@ trainer=Trainer(
 trainer.train()
 
 ### save fine_tuning model
-DataUtils.save_adapter(model=peft_model,tokenizer=tokenizer,adapter_name=f"LoRA_Qwen2.5-1.5B")
+DataUtils.save_adapter(model=peft_model,tokenizer=tokenizer,adapter_name=f"QLoRA_Qwen2.5-1.5B")
