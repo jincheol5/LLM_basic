@@ -9,6 +9,14 @@ from llm import DataUtils
 
 ### Tokenizer & Base Model 로드
 base_model,tokenizer=DataUtils.load_pretrained_llm(model_name=f"Qwen2.5-1.5B")
+# PAD / BOS / EOS 정렬 for QLoRA
+tokenizer.pad_token=tokenizer.eos_token
+tokenizer.bos_token=tokenizer.eos_token
+
+base_model.config.pad_token_id=tokenizer.pad_token_id
+base_model.config.bos_token_id=tokenizer.bos_token_id
+base_model.config.eos_token_id=tokenizer.eos_token_id
+base_model.resize_token_embeddings(len(tokenizer)) # tokenizer vocab 변화 반영 (안전장치)
 
 ### LoRA 설정 (Qwen 계열 권장)
 lora_config=LoraConfig(
@@ -87,7 +95,8 @@ training_args=TrainingArguments(
     gradient_accumulation_steps=16, # effective batch = 32
     num_train_epochs=3,
     learning_rate=2e-4, # LoRA 표준 LR
-    fp16=True, # Qwen + GPU 기준
+    device_map=None,
+    fp16=False, # Qwen + GPU 기준, QLoRA에서는 Trainer fp16 끔
     logging_steps=50,
     save_strategy="no", # 중간 checkpoint 저장 안 함
     eval_strategy="no",
@@ -104,7 +113,7 @@ trainer=Trainer(
     args=training_args,
     train_dataset=train_ds,
     data_collator=data_collator,
-    processing_class=tokenizer,
+    processing_class=tokenizer
 )
 trainer.train()
 
