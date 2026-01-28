@@ -11,6 +11,7 @@ model,tokenizer=DataUtils.load_local_llm(model_type=f"pretrained",model_name=f"Q
 model.config.use_cache=False  # Trainer + gradient checkpointing 안정성
 
 dataset=DataUtils.load_dataset(dataset_name=f"KoAlpaca-v1.1a")
+dataset=dataset['train']
 
 def preprocess_simple(example):
     prompt=example["instruction"]
