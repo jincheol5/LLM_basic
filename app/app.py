@@ -18,7 +18,11 @@ def preprocess_simple(example):
     if example.get("input") and example["input"].strip()!="":
         prompt+="\n"+example["input"]
     text=prompt+"\n"+example["output"]
-    return {"text":text}
+    return tokenizer(
+        text,
+        truncation=True,
+        max_length=2048
+    )
 
 dataset=dataset.map(
     preprocess_simple,
