@@ -1,8 +1,8 @@
 import os
 import torch
+from typing_extensions import Literal
 from datasets import load_dataset,load_from_disk
-from transformers import AutoModelForCausalLM,AutoTokenizer,BitsAndBytesConfig
-from peft import PeftModel
+from transformers import AutoModelForCausalLM,AutoTokenizer,pipeline
 
 class DataUtils:
     basic_path=os.path.join('..','data','llm_basic')
@@ -49,44 +49,32 @@ class DataUtils:
         dir_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
         os.makedirs(dir_path,exist_ok=True) # 해당 경로의 모든 폴더 없으면 생성
 
-        ### load quantized base model from Hugging Face
-        bnb_config=BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=True,
-        )
         model=AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=HF_path,
-            quantization_config=bnb_config, # for QLoRA=LoRA+quantized base model”
             dtype="auto",
-            device_map="cpu", 
-            low_cpu_mem_usage=True, # 메모리 사용 최소화
-            trust_remote_code=True # Qwen2 커스텀 코드 실행 허용
+            device_map="auto"
         )
 
         ### load tokenizer from Hugging Face
         tokenizer=AutoTokenizer.from_pretrained(HF_path)
 
         ### save model and tokenizer to local dir
-        model.save_pretrained(
-            dir_path,
-            safe_serialization=True  # safetensors 포맷으로 모델 가중치 저장 -> 순수 바이너리 포맷으로 더 빠르고 안전
-        )
+        model.save_pretrained(dir_path)
         tokenizer.save_pretrained(dir_path)
         print(f"Save pretrained {model_name} and its tokenizer!")
     
     @staticmethod
-    def load_pretrained_llm(model_name:str):
+    def load_local_llm(model_type:Literal['pretrained','fine_tunning']="pretrained",model_name:str=None):
         """
         Input:
+            model_type
             model_name
         Output:
             model
             tokenizer
         """
         ### set dir path
-        dir_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
+        dir_path=os.path.join(DataUtils.basic_path,model_type,model_name)
 
         ### load model from local dir
         model=AutoModelForCausalLM.from_pretrained(
@@ -104,37 +92,20 @@ class DataUtils:
         return model,tokenizer
 
     @staticmethod
-    def save_adapter(model,tokenizer,adapter_name:str):
+    def load_local_llm_pipeline(model_type:Literal['pretrained','fine_tunning']=f"pretrained",model_name:str=None,task:str=f"text-generation"):
         """
         Input:
-            model (peft_model)
-            tokenizer
-            adapter_name
-        """
-        ### set dir path
-        dir_path=os.path.join(DataUtils.basic_path,"adapter",adapter_name)
-        os.makedirs(dir_path,exist_ok=True) # 해당 경로의 모든 폴더 없으면 생성
-
-        ### save adapter and tokenizer
-        model.save_pretrained(dir_path)
-        tokenizer.save_pretrained(dir_path)
-        print(f"Save fine_tuning adapter and tokenizer of {adapter_name}")
-
-    @staticmethod
-    def load_adapter(base_model,adapter_name:str):
-        """
-        Input:
-            base_model
-            adapter_name
+            model_type
+            model_name
         Output:
-            merged_model
+            pipeline
         """
         ### set dir path
-        dir_path=os.path.join(DataUtils.basic_path,"adapter",adapter_name)
-
-        ### load adapter and merge with base model
-        merged_model=PeftModel.from_pretrained(
-            base_model,
-            dir_path
+        dir_path=os.path.join(DataUtils.basic_path,model_type,model_name)
+        llm_pipeline=pipeline(
+            task=task,
+            model=dir_path,
+            torch_dtype="auto",
+            device_map="auto"
         )
-        return merged_model
+        return llm_pipeline

@@ -17,8 +17,8 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser()
     # app number
     parser.add_argument("--app_num",type=int,default=1)
-    parser.add_argument("--HF_path",type=str,default="Qwen/Qwen2.5-1.5B")
-    parser.add_argument("--model_name",type=str,default="Qwen2.5-1.5B")
+    parser.add_argument("--HF_path",type=str,default="Qwen/Qwen2.5-1.5B-Instruct")
+    parser.add_argument("--model_name",type=str,default="Qwen2.5-1.5B-Instruct")
     args=parser.parse_args()
 
     app_config={
