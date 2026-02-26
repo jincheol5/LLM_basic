@@ -51,11 +51,39 @@ class DataUtils:
         print(f"Save tokenizer for pretrained causal llm: {model_name}!")
 
     @staticmethod
-    def load_local_llm_pipeline(model_type:Literal['pretrained','fine_tunning']=f"pretrained",model_name:str=None,task:str=f"text-generation"):
+    def load_local_llm(model_name:str,is_custom:bool=False):
+        """
+        """
+        model_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
+        model=AutoModel.from_pretrained(
+            model_path, 
+            trust_remote_code=is_custom, # 다시 load 할 때도 trust_remote_code=True 필요
+            torch_dtype=torch.bfloat16 
+        )
+        return model
+
+    @staticmethod
+    def load_local_tokenizer(model_name:str,is_custom:bool=False):
+        """
+        """
+        model_path=os.path.join(DataUtils.basic_path,"pretrained",model_name)
+        tokenizer=AutoTokenizer.from_pretrained(
+            model_path,
+            trust_remote_code=is_custom
+        )
+        return tokenizer
+
+    @staticmethod
+    def load_local_llm_pipeline(
+        model_type:Literal['pretrained','fine_tunning']=f"pretrained",
+        model_name:str=None,
+        task:str=f"text-generation"
+    ):
         """
         Input:
             model_type
             model_name
+            task: ["text-generation"]
         Output:
             pipeline
         """
