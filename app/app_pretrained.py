@@ -1,14 +1,24 @@
 import argparse
-from llm import DataUtils
+from modules import DataUtils
 
 def applications(app_config:dict):
     match app_config['app_num']:
         case 1:
             """
             App 1. 
-            Save pretrained model from Hugging Face to local dir
+            Save pretrained model and its tokenizer from Hugging Face to local dir
             """
-            DataUtils.save_pretrained_llm(HF_path=app_config['HF_path'],model_name=app_config['model_name'])
+            DataUtils.save_pretrained_causal_llm_from_HF(HF_path=app_config['HF_path'],model_name=app_config['model_name'])
+            DataUtils.save_tokenizer_from_HF(HF_path=app_config['HF_path'],model_name=app_config['model_name'])
+
+        case 2:
+            """
+            App2.
+            Save custom pretrained model and its tokenizer from Hugging Face to local dir
+            HF_path: deepseek-ai/DeepSeek-OCR
+            """
+            DataUtils.save_pretrained_custom_llm_from_HF(HF_path=app_config['HF_path'],model_name=app_config['model_name'])
+            DataUtils.save_tokenizer_from_HF(HF_path=app_config['HF_path'],model_name=app_config['model_name'],is_custom=True)
 
 if __name__=="__main__":
     """

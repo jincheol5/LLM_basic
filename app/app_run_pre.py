@@ -1,4 +1,4 @@
-from llm import DataUtils
+from modules import DataUtils
 
 llm_pipeline=DataUtils.load_local_llm_pipeline(model_type=f"pretrained",model_name=f"Qwen2.5-1.5B-Instruct")
 while True:
